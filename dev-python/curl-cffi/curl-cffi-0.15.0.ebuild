@@ -25,13 +25,11 @@ BDEPEND="dev-build/cmake
 distutils_enable_tests pytest
 
 src_prepare() {
-	# Switch libs.json from static to dynamic linking
+	# Switch libs.json from static to dynamic linking for linux
 	sed -i 's/"link_type": "static"/"link_type": "dynamic"/g' libs.json || die
 
-	# Remove download_libcurl() call and fix libdir check
-	sed -i '/^download_libcurl()$/,/^$/d' scripts/build.py || die
-	sed -i '/download_libcurl/d' scripts/build.py || die
-	sed -i 's/if is_static and libdir.exists():/if is_static and libdir.exists() and libdir != Path("."):/' scripts/build.py || die
+	# Comment out the download_libcurl() invocation in build.py
+	sed -i 's/^\tdownload_libcurl()$/\t# download_libcurl()/' scripts/build.py || die
 
 	default
 }
