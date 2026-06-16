@@ -1,6 +1,6 @@
-# lax-overlay
+# lax
 
-Gentoo overlay providing [curl-cffi](https://github.com/lexiforest/curl_cffi) â€” Python binding for curl-impersonate with browser TLS/HTTP fingerprint impersonation.
+Gentoo overlay providing [curl-cffi](https://github.com/lexiforest/curl_cffi) and [opencode](https://opencode.ai).
 
 ## Packages
 
@@ -8,20 +8,21 @@ Gentoo overlay providing [curl-cffi](https://github.com/lexiforest/curl_cffi) â€
 |---|---|
 | `net-misc/curl-impersonate` | Fork of curl that impersonates Chrome, Firefox, Safari TLS/HTTP2 fingerprints |
 | `dev-python/curl-cffi` | Python cffi bindings for curl-impersonate |
+| `dev-util/opencode` | AI coding agent for the terminal |
 
 ## Installation
 
 ### Add overlay
 
 ```bash
-eselect repository add lax-overlay git https://github.com/lax-user/lax-overlay.git
-emaint sync -r lax-overlay
+eselect repository add lax git https://github.com/Lax/lax-overlay.git
+emaint sync -r lax
 ```
 
 ### Install packages
 
 ```bash
-emerge --ask net-misc/curl-impersonate dev-python/curl-cffi
+emerge --ask net-misc/curl-impersonate dev-python/curl-cffi dev-util/opencode
 ```
 
 ## Usage
@@ -59,6 +60,17 @@ async def main():
         response = await session.get("https://example.com", impersonate="chrome")
 
 asyncio.run(main())
+```
+
+### opencode
+
+```bash
+# Stable channel (default)
+emerge -1 '=dev-util/opencode-9999::lax'
+
+# Beta channel
+echo "dev-util/opencode beta" >> /etc/portage/package.use/lax
+emerge -1 '=dev-util/opencode-9999::lax'
 ```
 
 ### Supported browser targets
