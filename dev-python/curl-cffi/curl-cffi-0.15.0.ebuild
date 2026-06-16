@@ -28,9 +28,15 @@ src_prepare() {
 	# Switch libs.json from static to dynamic linking for linux
 	sed -i 's/"link_type": "static"/"link_type": "dynamic"/g' libs.json || die
 
-	# Remove the download_libcurl() call (keep function def intact)
+	# Remove the download_libcurl() call
 	sed -i '/download_libcurl()/{
 		/def /!d
+	}' scripts/build.py || die
+
+	# Fix get_curl_archives to skip listing missing dir
+	sed -i '/^def get_curl_archives():/,/^$/{
+		s/print("Files in linking directory:")/# print("Files in linking directory:")/
+		s/print(os.listdir(libdir))/pass/
 	}' scripts/build.py || die
 
 	default
