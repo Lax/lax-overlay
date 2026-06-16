@@ -28,8 +28,10 @@ src_prepare() {
 	# Switch libs.json from static to dynamic linking for linux
 	sed -i 's/"link_type": "static"/"link_type": "dynamic"/g' libs.json || die
 
-	# Comment out the download_libcurl() invocation in build.py
-	sed -i 's/^\tdownload_libcurl()$/\t# download_libcurl()/' scripts/build.py || die
+	# Remove the download_libcurl() call (keep function def intact)
+	sed -i '/download_libcurl()/{
+		/def /!d
+	}' scripts/build.py || die
 
 	default
 }
