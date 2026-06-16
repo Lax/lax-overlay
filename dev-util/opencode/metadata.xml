@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/pkgmetadata.dtd">
+<pkgmetadata>
+  <maintainer type="project">
+    <email>lax@example.com</email>
+    <name>Lax</name>
+  </maintainer>
+  <upstream>
+    <remote-id type="github">anomalyco/opencode</remote-id>
+    <doc>https://opencode.ai/docs</doc>
+  </upstream>
+  <use>
+    <flag name="beta">
+      Track the beta release channel from anomalyco/opencode-beta.
+      Beta releases are more frequent but may be less stable.
+    </flag>
+  </use>
+</pkgmetadata>
