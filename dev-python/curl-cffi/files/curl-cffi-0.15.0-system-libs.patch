@@ -1,0 +1,80 @@
+diff --git a/curl_cffi/libs.json b/curl_cffi/libs.json
+index 1234567..abcdef0 100644
+--- a/curl_cffi/libs.json
++++ b/curl_cffi/libs.json
+@@ -34,7 +34,7 @@
+         "machine": "x86_64",
+         "pointer_size": 64,
+         "sysname": "linux",
+-        "link_type": "static",
++        "link_type": "dynamic",
+         "libc": "gnu",
+         "obj_name": "libcurl-impersonate.a",
+         "arch": "x86_64"
+@@ -52,7 +52,7 @@
+         "machine": "aarch64",
+         "pointer_size": 64,
+         "sysname": "linux",
+-        "link_type": "static",
++        "link_type": "dynamic",
+         "libc": "gnu",
+         "obj_name": "libcurl-impersonate.a",
+         "arch": "aarch64"
+@@ -62,7 +62,7 @@
+         "machine": "x86_64",
+         "pointer_size": 64,
+         "sysname": "linux",
+-        "link_type": "static",
++        "link_type": "dynamic",
+         "libc": "musl",
+         "obj_name": "libcurl-impersonate.a",
+         "arch": "x86_64"
+@@ -72,7 +72,7 @@
+         "machine": "aarch64",
+         "pointer_size": 64,
+         "sysname": "linux",
+-        "link_type": "static",
++        "link_type": "dynamic",
+         "libc": "musl",
+         "obj_name": "libcurl-impersonate.a",
+         "arch": "aarch64"
+@@ -92,7 +92,7 @@
+         "machine": "i686",
+         "pointer_size": 32,
+         "sysname": "linux",
+-        "link_type": "static",
++        "link_type": "dynamic",
+         "libc": "gnu",
+         "obj_name": "libcurl-impersonate.a",
+         "arch": "i386"
+diff --git a/scripts/build.py b/scripts/build.py
+index 1234567..abcdef0 100644
+--- a/scripts/build.py
++++ b/scripts/build.py
+@@ -107,9 +107,7 @@
+
+
+ def get_curl_archives():
+-    print("Files in linking directory:")
+-    print(os.listdir(libdir))
+-    if is_static:
++    if is_static and libdir.exists():
+         # note that the order of libraries matters
+         # https://stackoverflow.com/a/36581865
+         return [str(libdir / arch["obj_name"])]
+@@ -146,7 +144,6 @@
+
+
+ ffibuilder = FFI()
+ system = platform.system()
+ root_dir = Path(__file__).parent.parent
+-download_libcurl()
+
+ # With mega archive, we only have one to link
+ static_libs = get_curl_archives()
+@@ -197,4 +194,4 @@
+
+
+ if __name__ == "__main__":
+-    ffibuilder.compile(verbose=False)
++    ffibuilder.compile(verbose=True)

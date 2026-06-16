@@ -1,0 +1,110 @@
+# Copyright 2024 Gentoo Authors
+# Distributed under the terms of the GNU General Public License v2
+
+EAPI=8
+
+inherit autotools cmake flag-o-matic
+
+DESCRIPTION="Fork of curl-impersonate: curl that impersonates browser TLS/HTTP fingerprints"
+HOMEPAGE="https://github.com/lexiforest/curl-impersonate"
+BORINGSSL_SHA="673e61fc215b178a90c0e67858bbf162c8158993"
+CURL_VERSION="curl-8_15_0"
+SRC_URI="https://github.com/lexiforest/${PN}/archive/refs/tags/v${PV}.tar.gz -> ${P}.tar.gz
+	https://github.com/google/boringssl/archive/${BORINGSSL_SHA}.tar.gz -> boringssl-${BORINGSSL_SHA}.tar.gz
+	https://github.com/curl/curl/archive/${CURL_VERSION}.tar.gz -> ${CURL_VERSION//_/.}.tar.gz"
+
+LICENSE="MIT"
+SLOT="0"
+KEYWORDS="~amd64"
+IUSE="clients"
+
+DEPEND="app-arch/brotli:=
+	dev-libs/nss:=
+	net-libs/nghttp2:=
+	app-arch/zstd
+	net-libs/libpsl
+	virtual/zlib"
+RDEPEND="${DEPEND}"
+BDEPEND="dev-build/ninja
+	dev-build/cmake"
+
+DOCS=( README.md )
+
+src_prepare() {
+	mv "${WORKDIR}/boringssl-${BORINGSSL_SHA}" "${S}/" || die
+	pushd "boringssl-${BORINGSSL_SHA}" &>/dev/null || die
+	eapply ../patches/boringssl.patch
+	touch .patched || die
+	cmake_src_prepare
+	popd &>/dev/null || die
+
+	mv "${WORKDIR}/curl-${CURL_VERSION}" "${S}/${CURL_VERSION}" || die
+	pushd "${CURL_VERSION}" &>/dev/null || die
+	eapply ../patches/curl.patch
+	eautoreconf
+	touch .patched-chrome || die
+	popd &>/dev/null || die
+
+	default
+}
+
+src_configure() {
+	pushd "boringssl-${BORINGSSL_SHA}" || die
+	sed -re 's|-Werror||g' -i CMakeLists.txt || die
+	local mycmakeargs=(
+		-DBUILD_SHARED_LIBS=OFF
+		-DCMAKE_POSITION_INDEPENDENT_CODE=ON
+	)
+	cmake_src_configure
+	popd || die
+}
+
+src_compile() {
+	pushd "boringssl-${BORINGSSL_SHA}" || die
+	cmake_src_compile
+	popd || die
+
+	mkdir "boringssl-${BORINGSSL_SHA}/lib" || die
+	cp "boringssl-${BORINGSSL_SHA}_build"/*.a "boringssl-${BORINGSSL_SHA}/lib" || die
+
+	pushd "${CURL_VERSION}" || die
+	append-cxxflags -stdlib=libstdc++
+	append-ldflags -lstdc++
+	econf \
+		"--with-brotli=${EPREFIX}/usr/$(get_libdir)" \
+		"--with-ca-bundle=${EPREFIX}/etc/ssl/certs/ca-certificates.crt" \
+		"--with-nghttp2=${EPREFIX}/usr/$(get_libdir)" \
+		"--with-openssl=${S}/boringssl-${BORINGSSL_SHA}" \
+		"--with-zlib=${EPREFIX}/usr/$(get_libdir)" \
+		"--with-zstd=${EPREFIX}/usr/$(get_libdir)" \
+		--enable-ech \
+		--enable-ipv6 \
+		--disable-static \
+		--enable-websockets \
+		LIBS="-pthread -lbrotlidec -lstdc++" \
+		USE_CURL_SSLKEYLOGFILE=true
+	emake
+	popd || die
+}
+
+src_install() {
+	pushd "${CURL_VERSION}" || die
+	emake DESTDIR="${D}" install
+
+	if [ -f "${D}/usr/bin/wcurl" ]; then
+		mv "${D}/usr/bin/wcurl" "${D}/usr/bin/w${PN}" || die
+	fi
+	rm -fR "${D}/usr/share/man" "${D}/usr/share/aclocal" "${D}/usr/include" \
+		"${D}/usr/$(get_libdir)/lib${PN}.la" || die
+	popd || die
+
+	if use clients; then
+		local bn i
+		for i in bin/curl_*; do
+			bn=$(basename "$i")
+			newbin "$i" "${bn//_/-}"
+		done
+	fi
+
+	einstalldocs
+}
