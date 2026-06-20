@@ -6,6 +6,7 @@ EAPI=8
 DISTUTILS_USE_PEP517=setuptools
 PYTHON_COMPAT=( python3_{10..14} )
 DISTUTILS_EXT=1
+PYPI_PV="0.15.1b2"
 inherit distutils-r1 pypi
 
 DESCRIPTION="Python binding for curl-impersonate fork via cffi"
