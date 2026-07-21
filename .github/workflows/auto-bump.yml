@@ -1,0 +1,70 @@
+name: Auto package bump
+
+on:
+  schedule:
+    - cron: '30 20 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Verify opencode API key
+        run: |
+          [ -n "${{ secrets.OPENCODE_API_KEY }}" ] \
+            || { echo "::error::OPENCODE_API_KEY not set"; exit 1; }
+
+      - name: Detect latest opencode version
+        id: ver
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VER=$(gh api repos/anomalyco/opencode/releases/latest --jq '.tag_name' | tr -d v)
+          [ -n "$VER" ] || { echo "::error::version detect failed"; exit 1; }
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+
+      - name: Cache opencode binary
+        id: cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/opencode/opencode
+          key: opencode-bin-${{ steps.ver.outputs.version }}
+
+      - name: Install opencode from cache
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: |
+          sudo install ~/.cache/opencode/opencode /usr/local/bin/
+          opencode --version
+
+      - name: Install opencode from release
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.cache/opencode
+          curl -sL "https://github.com/anomalyco/opencode/releases/download/v${{ steps.ver.outputs.version }}/opencode-linux-x64.tar.gz" \
+            | tar xz -C ~/.cache/opencode/
+          sudo install ~/.cache/opencode/opencode /usr/local/bin/
+          opencode --version
+
+      - name: Bump packages
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          timeout 300 opencode --print-logs run 'bump version for all the packages; do NOT commit or push'
+
+      - name: Get date
+        id: date
+        run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Commit & push changes
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: Auto bump ${{ steps.date.outputs.date }}
+          commit_user_name: lax-bot
+          commit_user_email: lax@users.noreply.github.com
+          commit_author: lax-bot <lax@users.noreply.github.com>
