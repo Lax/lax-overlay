@@ -14,7 +14,7 @@ KEYWORDS="~amd64"
 RESTRICT="strip"
 
 STABLE_VER="1.18.4"
-BETA_VER="0.0.0-beta-202607201938"
+BETA_VER="0.0.0-beta-202607212021"
 
 SRC_URI="
     !beta? ( https://github.com/anomalyco/opencode/releases/download/v${STABLE_VER}/opencode-linux-x64.tar.gz -> ${PN}-bin-${STABLE_VER}.tar.gz )
