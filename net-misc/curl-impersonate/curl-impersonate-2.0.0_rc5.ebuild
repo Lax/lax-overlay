@@ -9,7 +9,7 @@ DESCRIPTION="Fork of curl-impersonate: curl that impersonates browser TLS/HTTP f
 HOMEPAGE="https://github.com/lexiforest/curl-impersonate"
 BORINGSSL_SHA="156c7b75ae9b8c3b3f847acf264f17594c3859fb"
 CURL_VERSION="curl-8_21_0"
-SRC_URI="https://github.com/lexiforest/${PN}/archive/refs/tags/v${PV}.tar.gz -> ${P}.tar.gz
+SRC_URI="https://github.com/lexiforest/${PN}/archive/refs/tags/v2.0.0rc5.tar.gz -> ${P}.tar.gz
 	https://github.com/google/boringssl/archive/${BORINGSSL_SHA}.tar.gz -> boringssl-${BORINGSSL_SHA}.tar.gz
 	https://github.com/curl/curl/archive/${CURL_VERSION}.tar.gz -> ${CURL_VERSION//_/.}.tar.gz"
 
