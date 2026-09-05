@@ -29,11 +29,13 @@ KEYWORDS="~amd64"
 # ExternalProject archives prefetched into each dep's download dir
 # (<name>-prefix/src, CMake's default DOWNLOAD_DIR) so the superbuild
 # download step finds them with a matching hash and never hits the network.
-# Format: "<dist-name> <prefix-name>".
+# The download step looks for the URL's basename, not the distfile name,
+# so pass "<dist-name> <prefix-name> [<download-name>]" (third field only
+# needed when it differs from <dist-name>, e.g. brotli's tag URL).
 DEP_ARCHIVES=(
 	"zlib-1.3.1.tar.gz zlib"
 	"zstd-1.5.7.tar.gz zstd"
-	"brotli-1.2.0.tar.gz brotli"
+	"brotli-1.2.0.tar.gz brotli v1.2.0.tar.gz"
 	"${BORINGSSL_SHA}.zip boringssl"
 	"nghttp2-1.63.0.tar.bz2 nghttp2"
 	"nghttp3-1.15.0.tar.bz2 nghttp3"
@@ -56,13 +58,13 @@ src_unpack() {
 
 src_configure() {
 	local build_dir="${BUILD_DIR:-${WORKDIR}/${P}_build}"
-	local pair archive prefix
-	for pair in "${DEP_ARCHIVES[@]}"; do
-		archive=${pair%% *}
-		prefix=${pair#* }
+	local entry archive prefix name
+	for entry in "${DEP_ARCHIVES[@]}"; do
+		read -r archive prefix name <<<"${entry}"
+		name=${name:-${archive}}
 		mkdir -p "${build_dir}/${prefix}-prefix/src" || die
 		if [[ -f "${DISTDIR}/${archive}" ]]; then
-			cp "${DISTDIR}/${archive}" "${build_dir}/${prefix}-prefix/src/" || die
+			cp "${DISTDIR}/${archive}" "${build_dir}/${prefix}-prefix/src/${name}" || die
 		else
 			eerror "Missing DIST file: ${archive}"
 			die "Missing DIST file: ${archive}"
