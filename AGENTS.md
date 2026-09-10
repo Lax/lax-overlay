@@ -35,6 +35,12 @@ For each version bump:
    (Only `opencode-bin` and `zcode-bin` need a Manifest — prebuilt binaries. Others use `thin-manifests = true`.)
 3. Commit: `git add -A && git commit -m "$pkg: $old -> $new"`
 
+**Local vs CI**:
+- Local interactive bumps commit per the recipe above.
+- When running as the scheduled GitHub Actions bump agent (`auto-bump.yml`), do NOT
+  commit or push — create/update ebuilds + Manifests only and let
+  `stefanzweifel/git-auto-commit-action` handle the single `Auto bump YYYY-MM-DD` commit.
+
 ## Config
 
 - `metadata/layout.conf`: `masters = gentoo`, `thin-manifests = true`, `repo-name = lax`

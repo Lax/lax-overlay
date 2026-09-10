@@ -5,6 +5,10 @@ on:
     - cron: '30 20 * * *'
   workflow_dispatch:
 
+concurrency:
+  group: auto-bump
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -14,10 +18,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Verify opencode API key
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         run: |
-          [ -n "${{ secrets.OPENCODE_API_KEY }}" ] \
+          set -euo pipefail
+          [ -n "${OPENCODE_API_KEY:-}" ] \
             || { echo "::error::OPENCODE_API_KEY not set"; exit 1; }
 
       - name: Detect latest opencode version
@@ -25,11 +34,29 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           VER=$(gh api repos/anomalyco/opencode/releases/latest --jq '.tag_name' | tr -d v)
           [ -n "$VER" ] || { echo "::error::version detect failed"; exit 1; }
           echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "latest opencode stable: $VER"
+
+      - name: Get date
+        id: date
+        run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if ebuild for latest version already exists
+        id: needed
+        run: |
+          set -euo pipefail
+          VER="${{ steps.ver.outputs.version }}"
+          if git ls-files -- 'dev-util/opencode-bin/*.ebuild' | grep -qx "dev-util/opencode-bin/opencode-bin-${VER}_p1.ebuild"; then
+            echo "up_to_date=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "up_to_date=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Cache opencode binary
+        if: steps.needed.outputs.up_to_date != 'true'
         id: cache
         uses: actions/cache@v5
         with:
@@ -37,31 +64,95 @@ jobs:
           key: opencode-bin-${{ steps.ver.outputs.version }}
 
       - name: Install opencode from cache
-        if: steps.cache.outputs.cache-hit == 'true'
+        if: steps.needed.outputs.up_to_date != 'true' && steps.cache.outputs.cache-hit == 'true'
         run: |
+          set -euo pipefail
+          test -x ~/.cache/opencode/opencode || { echo "::error::cache contains no usable binary"; exit 1; }
           sudo install ~/.cache/opencode/opencode /usr/local/bin/
           opencode --version
 
       - name: Install opencode from release
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.needed.outputs.up_to_date != 'true' && steps.cache.outputs.cache-hit != 'true'
         run: |
+          set -euo pipefail
           mkdir -p ~/.cache/opencode
-          curl -sL "https://github.com/anomalyco/opencode/releases/download/v${{ steps.ver.outputs.version }}/opencode-linux-x64.tar.gz" \
+          curl -sSL --fail --retry 3 --connect-timeout 30 \
+            "https://github.com/anomalyco/opencode/releases/download/v${{ steps.ver.outputs.version }}/opencode-linux-x64.tar.gz" \
             | tar xz -C ~/.cache/opencode/
+          test -x ~/.cache/opencode/opencode || { echo "::error::tarball produced no binary"; exit 1; }
           sudo install ~/.cache/opencode/opencode /usr/local/bin/
           opencode --version
 
+      - name: Configure git identity
+        if: steps.needed.outputs.up_to_date != 'true'
+        run: |
+          git config user.name lax-bot
+          git config user.email lax@users.noreply.github.com
+
       - name: Bump packages
+        id: bump
+        if: steps.needed.outputs.up_to_date != 'true'
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         run: |
-          timeout 300 opencode --print-logs run 'bump version for all the packages; do NOT commit or push'
+          set -o pipefail; set +e
+          timeout 600 opencode --print-logs run 'bump version for all the packages per AGENTS.md; do NOT commit or push' 2>&1 | tee bump.log
+          rc=${PIPESTATUS[0]}
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::opencode agent failed (rc=$rc); see bump.log"
+            exit 1
+          fi
 
-      - name: Get date
-        id: date
-        run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+      - name: Upload agent log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bump-log-${{ steps.date.outputs.date }}
+          path: bump.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Sanity-check changes
+        if: steps.needed.outputs.up_to_date != 'true'
+        run: |
+          set -euo pipefail
+          git add -A
+          all=$(git diff --cached --name-only --diff-filter=AM | grep -E '\.ebuild$' || true)
+          if [ -z "$all" ]; then
+            echo "no ebuild changes; nothing to validate"
+            exit 0
+          fi
+          bad=0
+          for f in $all; do
+            bash -n "$f" || { echo "::error::syntax check failed: $f"; bad=1; }
+            case "$f" in
+              *opencode-bin*|*zcode-bin*)
+                dist=$(sed -n 's/.*-> \(.*\)$/\1/p' "$f" | head -n 1)
+                if [ -z "$dist" ] || ! grep -q "^DIST $dist " "$(dirname "$f")/Manifest"; then
+                  echo "::error::$f: distfile '$dist' missing from Manifest (pkgdev manifest step needed)"; bad=1
+                fi
+                ;;
+            esac
+          done
+          [ "$bad" -eq 0 ] || exit 1
+          echo "sanity checks passed for:"$'\n'"$all"
+
+      - name: Rebase onto remote master
+        if: steps.needed.outputs.up_to_date != 'true'
+        run: |
+          set -euo pipefail
+          if ! git pull --rebase origin master; then
+            git rebase --abort 2>/dev/null || true
+            git stash
+            if ! git pull --rebase origin master; then
+              echo "::error::rebase against remote master failed (concurrent history change); resolve manually"
+              exit 1
+            fi
+            git stash pop
+          fi
 
       - name: Commit & push changes
+        if: steps.needed.outputs.up_to_date != 'true'
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: Auto bump ${{ steps.date.outputs.date }}
