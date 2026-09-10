@@ -36,6 +36,26 @@ zcode()            { curl -s --max-time 15 "https://zcode.z.ai/en" 2>/dev/null |
 curl_impersonate() { gh api repos/lexiforest/curl-impersonate/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^v//'; }
 curl_cffi()        { gh api repos/lexiforest/curl_cffi/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^v//'; }
 
+# upstream release-notes / tag-message summary for the *new* version we detect
+notes_gh() { # repo maxchars
+    gh api "repos/$1/releases/latest" --jq .body 2>/dev/null \
+        | grep -v '^\[!\[^\\]' \
+        | head -c "${2:-2000}"
+}
+
+notes_zcode() { # latest version block from zcode.z.ai changelog page
+    curl -s --max-time 15 "https://zcode.z.ai/cn/changelog" 2>/dev/null \
+        | python3 -c "
+import re,sys
+h=sys.stdin.read()
+t=re.sub(r'<[^>]+>','\n',h)
+ls=[l.strip() for l in t.split('\n') if l.strip()]
+idx=[i for i,l in enumerate(ls) if re.match(r'^\d+\.\d+\.\d+$',l)]
+if not idx: sys.exit()
+out=ls[idx[0]:idx[1] if len(idx)>1 else idx[0]+25]
+print('\n'.join(out[:25]))"
+}
+
 OC="dev-util/opencode-bin"
 
 {
@@ -70,6 +90,38 @@ OC="dev-util/opencode-bin"
         || echo "| curl-cffi | $l | $u | behind: next scheduled bump ⚠️ |"; }
 
     echo
+    echo "## Upstream new version notes"
+    echo
+    b=$(notes_gh anomalyco/opencode)
+    if [ -n "$b" ]; then
+        echo "<details>"
+        echo "<summary><b>opencode</b> — target of next opencode-bin bump</summary>"
+        echo
+        echo "$b"
+        echo
+        echo "</details>"
+        echo
+    else
+        echo "- opencode: no release notes body"
+    fi
+
+    b=$(notes_zcode)
+    if [ -n "$b" ]; then
+        echo "<details>"
+        echo "<summary><b>zcode</b> — target of next zcode-bin bump</summary>"
+        echo
+        echo "$b"
+        echo
+        echo "</details>"
+        echo
+    fi
+
+    b=$(notes_gh lexiforest/curl-impersonate)
+    [ -n "$b" ] && { echo "<details>"; echo "<summary><b>curl-impersonate</b> target</summary>"; echo; echo "$b"; echo; echo "</details>"; echo; }
+
+    b=$(notes_gh lexiforest/curl_cffi)
+    [ -n "$b" ] && { echo "<details>"; echo "<summary><b>curl-cffi</b> target</summary>"; echo; echo "$b"; echo; echo "</details>"; echo; }
+    echo
     echo "## Run recap"
     echo
     echo "- upstream opencode stable detected: **${UPSTREAM_VER:-unknown}**"
@@ -77,14 +129,33 @@ OC="dev-util/opencode-bin"
         echo "- outcome: **skipped** — ebuild for latest version already present 🚀"
     else
         echo "- outcome: **bump executed**, target ${UPSTREAM_VER}"
-        [ -n "${BUMP_NO_CHANGES:-}" ] && echo "- note: no ebuild changes were produced"
-        if git status --porcelain 2>/dev/null | head -12 | grep -q .; then
-            echo "- pending working tree state:"
-            echo '```'
-            git status --porcelain | head -12
-            echo '```'
+        if [ -s .bump-file-changes.txt ]; then
+            echo "- files updated this run:"
+            echo
+            echo "| change | path |"
+            echo "|---|---|"
+            while IFS=$'\t' read -r s p; do
+                case "$s" in
+                    A*) kind='✚ added' ;;
+                    M*) kind='✎ modified' ;;
+                    D*) kind='✘ deleted' ;;
+                    *)  kind="$s" ;;
+                esac
+                echo "| $kind | \`$p\` |"
+            done < .bump-file-changes.txt
+            if [ -s .bump-diffstat.txt ]; then
+                echo
+                echo "\`\`\`diffstat"
+                cat .bump-diffstat.txt
+                echo "\`\`\`"
+            fi
+        elif [ "${BUMP_NO_CHANGES:-}" = "1" ]; then
+            echo "- but no ebuild changes were produced (upstream parity kept?)"
+        else
+            echo "- but no change report was captured (run failed before bump?)"
         fi
     fi
+    [ "${BUMP_NO_CHANGES:-}" = "1" ] && [ "${UP_TO_DATE}" = "true" ] && echo "- (skipped fast path, nothing to do)"
     echo
     echo "_generated $(date -u +%Y-%m-%dT%H:%M:%SZ)_"
     echo

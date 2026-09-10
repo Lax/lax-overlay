@@ -120,6 +120,7 @@ jobs:
           all=$(git diff --cached --name-only --diff-filter=AM | grep -E '\.ebuild$' || true)
           if [ -z "$all" ]; then
             echo "no ebuild changes; nothing to validate"
+            echo "BUMP_NO_CHANGES=1" >> "$GITHUB_ENV"
             exit 0
           fi
           bad=0
@@ -136,6 +137,9 @@ jobs:
           done
           [ "$bad" -eq 0 ] || exit 1
           echo "sanity checks passed for:"$'\n'"$all"
+          # stash the change report for the post-run insights step
+          git diff --cached --name-status --diff-filter=AM > .bump-file-changes.txt
+          git diff --cached --stat --diff-filter=AM > .bump-diffstat.txt
 
       - name: Rebase onto remote master
         if: steps.needed.outputs.up_to_date != 'true'
