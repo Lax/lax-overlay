@@ -10,7 +10,7 @@ CHANNEL="${1:-stable}"
 
 if [ "$CHANNEL" = "beta" ]; then
     VERSION=$(curl -s "https://registry.npmjs.org/opencode-ai" \
-        | grep -o '"beta": "0\.0\.0-beta-[0-9]*"' | cut -d'"' -f4)
+        | grep -o '"beta":"0\.0\.0-beta-[0-9]*"' | cut -d'"' -f4)
 else
     VERSION=$(curl -s "https://api.github.com/repos/anomalyco/opencode/releases/latest" \
         | grep -o '"tag_name": "[^"]*"' | cut -d'"' -f4)
