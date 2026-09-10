@@ -159,3 +159,11 @@ jobs:
           commit_user_name: lax-bot
           commit_user_email: lax@users.noreply.github.com
           commit_author: lax-bot <lax@users.noreply.github.com>
+
+      - name: Post-run insights
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPSTREAM_VER: ${{ steps.ver.outputs.version }}
+          UP_TO_DATE: ${{ steps.needed.outputs.up_to_date }}
+        run: bash .github/scripts/post-bump-insights.sh
