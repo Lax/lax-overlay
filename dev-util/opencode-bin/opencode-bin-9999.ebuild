@@ -17,14 +17,14 @@ STABLE_VER="1.18.30"
 BETA_VER="0.0.0-beta-202608110357"
 
 SRC_URI="
-    !beta? ( https://github.com/anomalyco/opencode/releases/download/v${STABLE_VER}/opencode-linux-x64.tar.gz -> ${PN}-bin-${STABLE_VER}.tar.gz )
-    beta? ( https://github.com/anomalyco/opencode-beta/releases/download/v${BETA_VER}/opencode-linux-x64.tar.gz -> ${PN}-bin-${BETA_VER}.tar.gz )
+    !beta? ( https://github.com/anomalyco/opencode/releases/download/v${STABLE_VER}/opencode-linux-x64.tar.gz -> opencode-bin-${STABLE_VER}.tar.gz )
+    beta? ( https://github.com/anomalyco/opencode-beta/releases/download/v${BETA_VER}/opencode-linux-x64.tar.gz -> opencode-bin-${BETA_VER}.tar.gz )
 "
 
 RDEPEND="
     app-shells/fzf
     sys-apps/ripgrep
-    !dev-util/opencode-bin
+    !dev-util/opencode
 "
 
 S="${WORKDIR}"

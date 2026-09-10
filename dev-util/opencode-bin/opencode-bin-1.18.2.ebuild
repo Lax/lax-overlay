@@ -5,7 +5,7 @@ EAPI=8
 
 DESCRIPTION="AI coding agent, built for the terminal"
 HOMEPAGE="https://opencode.ai"
-SRC_URI="https://github.com/anomalyco/opencode/releases/download/v${PV}/opencode-linux-x64.tar.gz -> ${PN}-bin-${PV}-linux-x64.tar.gz"
+SRC_URI="https://github.com/anomalyco/opencode/releases/download/v${PV}/opencode-linux-x64.tar.gz -> opencode-bin-${PV}-linux-x64.tar.gz"
 
 LICENSE="MIT"
 SLOT="0"
@@ -18,7 +18,7 @@ RDEPEND="
 	sys-apps/ripgrep
 "
 RDEPEND="${RDEPEND}
-	!dev-util/opencode-bin
+	!dev-util/opencode
 "
 
 QA_PREBUILT="*"
