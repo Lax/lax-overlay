@@ -18,7 +18,7 @@ latest_ver() { # dir
     ls -1 "$d"/*.ebuild 2>/dev/null \
         | xargs -rn 1 basename \
         | grep -v '0\.0\.0_beta' \
-        | sed "s/^${pfx}-//; s/_p1\.ebuild$//" \
+        | sed "s/^${pfx}-//; s/\.ebuild$//; s/_p1$//" \
         | sort -V | tail -n 1
 }
 
