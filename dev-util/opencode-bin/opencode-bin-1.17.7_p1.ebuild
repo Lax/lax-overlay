@@ -9,6 +9,8 @@ DESCRIPTION="AI coding agent, built for the terminal"
 HOMEPAGE="https://opencode.ai"
 SRC_URI="https://github.com/anomalyco/opencode/releases/download/v${UPSTREAM_PV}/opencode-linux-x64.tar.gz -> opencode-bin-${UPSTREAM_PV}-linux-x64.tar.gz"
 
+S="${WORKDIR}"
+
 LICENSE="MIT"
 SLOT="0"
 KEYWORDS="~amd64"
@@ -25,8 +27,6 @@ RDEPEND="${RDEPEND}
 
 QA_PREBUILT="*"
 STRIP_MASK="/usr/bin/opencode"
-
-S="${WORKDIR}"
 
 src_install() {
 	dobin "${S}/opencode"

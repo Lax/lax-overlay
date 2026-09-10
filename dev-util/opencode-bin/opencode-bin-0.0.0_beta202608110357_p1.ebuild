@@ -21,7 +21,6 @@ QA_PREBUILT="*"
 RDEPEND="
 	app-shells/fzf
 	sys-apps/ripgrep
-	!dev-util/opencode-bin
 "
 
 STRIP_MASK="/usr/bin/opencode"

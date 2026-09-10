@@ -2,7 +2,12 @@
 
 4 ebuild packages, EAPI=8, `~amd64`.
 
-**Version suffix `_p1`**: prebuilt packages (`opencode-bin`, `zcode-bin`) append `_p1` to PV to mark them as this overlay's wraps (vs. official upstream). Upstream URLs use `UPSTREAM_PV="${PV%%_*}"`; distfile names stay suffix-free so DIST digests don't change. New upstream release X.Y.Z gets ebuild `-$X.Y.Z-p1`.
+**Version suffix `_p1`**: prebuilt packages (`opencode-bin`, `zcode-bin`) append `_p1` to PV to mark them as this overlay's wraps (vs. official upstream). Upstream URLs use `UPSTREAM_PV="${PV%%_*}"` (beta ebuilds declare `UPSTREAM_PV` literally — PV is `0.0.0_betaNNNN_p1`-style); distfile names stay suffix-free so DIST digests don't change. New upstream release X.Y.Z gets ebuild `-$X.Y.Z-p1`.
+
+**Beta snapshots** (`opencode-bin`): beta is a regular versioned ebuild (no USE flag), e.g. `opencode-bin-0.0.0_beta202608110357_p1`,
+mapping upstream tag `v0.0.0-beta-202608110357` → PV `0.0.0_beta202608110357_p1`. Only the
+dated beta tags carry the CLI tarball; `v0.0.0-beta-NNNNN` tags in `anomalyco/opencode-beta`
+are desktop-only builds. Detect via `detect-version.sh beta` (npm `dist-tags.beta`).
 
 ## Repo layout
 
@@ -17,8 +22,8 @@
 
 ```bash
 # helper: query latest upstream tag
-dev-util/opencode-bin/files/detect-version.sh [beta|stable]   # beta = npm dist-tags.beta (dated tags only)
-dev-util/zcode-bin/files/detect-version.sh
+bash dev-util/opencode-bin/files/detect-version.sh [beta|stable]   # beta = npm dist-tags.beta (dated tags only)
+bash dev-util/zcode-bin/files/detect-version.sh
 ```
 
 For each version bump:
