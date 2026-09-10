@@ -1,6 +1,6 @@
 # lax — Gentoo overlay
 
-4 ebuild packages, EAPI=8, `~amd64`.
+5 ebuild packages, EAPI=8, `~amd64`.
 
 **Version suffix `_p1`**: prebuilt packages (`opencode-bin`, `zcode-bin`) append `_p1` to PV to mark them as this overlay's wraps (vs. official upstream). Upstream URLs use `UPSTREAM_PV="${PV%%_*}"` (beta ebuilds declare `UPSTREAM_PV` literally — PV is `0.0.0_betaNNNN_p1`-style); distfile names stay suffix-free so DIST digests don't change. New upstream release X.Y.Z gets ebuild `-$X.Y.Z-p1`.
 
@@ -16,6 +16,7 @@ are desktop-only builds. Detect via `detect-version.sh beta` (npm `dist-tags.bet
 | `net-misc/curl-impersonate` | curl fork with browser TLS fingerprinting | lexiforest/curl-impersonate | Builds from source (cmake + autotools), embeds BoringSSL |
 | `dev-python/curl-cffi` | Python cffi bindings | lexiforest/curl_cffi | PyPI source via `distutils-r1 pypi` |
 | `dev-util/opencode-bin` | AI coding agent CLI binary | anomalyco/opencode | Prebuilt binary, has `Manifest` with DIST hashes |
+| `dev-util/codex-bin` | OpenAI Codex CLI coding agent | openai/codex | Prebuilt static binary from `rust-vX.Y.Z` tags, has `Manifest` with DIST hashes |
 | `dev-util/zcode-bin` | Zhipu GLM coding agent, Electron desktop app (.deb) | zcode.z.ai | Prebuilt Electron, has `Manifest` with DIST hashes, installed to `/opt/ZCode` |
 
 ## Updating packages
@@ -24,6 +25,7 @@ are desktop-only builds. Detect via `detect-version.sh beta` (npm `dist-tags.bet
 # helper: query latest upstream tag
 bash dev-util/opencode-bin/files/detect-version.sh [beta|stable]   # beta = npm dist-tags.beta (dated tags only)
 bash dev-util/zcode-bin/files/detect-version.sh
+bash dev-util/codex-bin/files/detect-version.sh
 ```
 
 For each version bump:
@@ -32,7 +34,7 @@ For each version bump:
    ```
    pkgdev manifest dev-util/opencode-bin
    ```
-   (Only `opencode-bin` and `zcode-bin` need a Manifest — prebuilt binaries. Others use `thin-manifests = true`.)
+   (Only `opencode-bin`, `zcode-bin`, and `codex-bin` need a Manifest — prebuilt binaries. Others use `thin-manifests = true`.)
 3. Commit: `git add -A && git commit -m "$pkg: $old -> $new"`
 
 **Local vs CI**:

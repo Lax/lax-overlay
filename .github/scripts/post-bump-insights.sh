@@ -35,6 +35,7 @@ opencode_beta()    { curl -s --max-time 15 "https://registry.npmjs.org/opencode-
 zcode()            { curl -s --max-time 15 "https://zcode.z.ai/en" 2>/dev/null | grep -oE 'releases/[0-9]+\.[0-9]+\.[0-9]+' | sed 's|releases/||' | sort -uV | tail -n 1; }
 curl_impersonate() { gh api repos/lexiforest/curl-impersonate/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^v//'; }
 curl_cffi()        { gh api repos/lexiforest/curl_cffi/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^v//'; }
+codex()            { gh api repos/openai/codex/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^rust-v//'; }
 
 # upstream release-notes / tag-message summary for the *new* version we detect
 notes_gh() { # repo maxchars
@@ -88,6 +89,11 @@ OC="dev-util/opencode-bin"
     [ -z "$u" ] && echo "| curl-cffi | $l | *detect failed* | ⚠️ |" \
         || { [ "$l" = "$u" ] && echo "| curl-cffi | $l | $u | in sync ✅ |" \
         || echo "| curl-cffi | $l | $u | behind: next scheduled bump ⚠️ |"; }
+
+    l=$(latest_ver dev-util/codex-bin); u=$(codex)
+    [ -z "$u" ] && echo "| codex-bin | $l | *detect failed* | ⚠️ |" \
+        || { [ "$l" = "$u" ] && echo "| codex-bin | $l | $u | in sync ✅ |" \
+        || echo "| codex-bin | $l | $u | behind: next scheduled bump ⚠️ |"; }
 
     echo
     echo "## Upstream new version notes"
