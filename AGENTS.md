@@ -17,7 +17,7 @@
 
 ```bash
 # helper: query latest upstream tag
-dev-util/opencode-bin/files/detect-version.sh
+dev-util/opencode-bin/files/detect-version.sh [beta|stable]   # beta = npm dist-tags.beta (dated tags only)
 dev-util/zcode-bin/files/detect-version.sh
 ```
 
