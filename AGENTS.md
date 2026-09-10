@@ -13,18 +13,16 @@
 | `dev-util/opencode-bin` | AI coding agent CLI binary | anomalyco/opencode | Prebuilt binary, has `Manifest` with DIST hashes |
 | `dev-util/zcode-bin` | Zhipu GLM coding agent, Electron desktop app (.deb) | zcode.z.ai | Prebuilt Electron, has `Manifest` with DIST hashes, installed to `/opt/ZCode` |
 
-**`opencode-9999.ebuild`** is a tracking ebuild with `STABLE_VER` and `BETA_VER` variables + `USE=beta` flag. Update both when bumping.
-
 ## Updating packages
 
 ```bash
 # helper: query latest upstream tag
-dev-util/opencode-bin/files/detect-version.sh [beta|stable]
+dev-util/opencode-bin/files/detect-version.sh
 dev-util/zcode-bin/files/detect-version.sh
 ```
 
 For each version bump:
-1. Create/update ebuild(s), update `BETA_VER` / `STABLE_VER` in `-9999` if needed
+1. Create/update ebuild(s): new upstream release X.Y.Z → new ebuild `-$X.Y.Z-p1` (see `_p1` convention above)
 2.    Re-gen Manifest for `dev-util/opencode-bin`:
    ```
    pkgdev manifest dev-util/opencode-bin
