@@ -2,6 +2,8 @@
 
 4 ebuild packages, EAPI=8, `~amd64`.
 
+**Version suffix `_p1`**: prebuilt packages (`opencode-bin`, `zcode-bin`) append `_p1` to PV to mark them as this overlay's wraps (vs. official upstream). Upstream URLs use `UPSTREAM_PV="${PV%%_*}"`; distfile names stay suffix-free so DIST digests don't change. New upstream release X.Y.Z gets ebuild `-$X.Y.Z-p1`.
+
 ## Repo layout
 
 | Dir | Package | Upstream | Notes |

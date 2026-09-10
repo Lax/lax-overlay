@@ -3,9 +3,11 @@
 
 EAPI=8
 
+UPSTREAM_PV="${PV%%_*}"
+
 DESCRIPTION="AI coding agent, built for the terminal"
 HOMEPAGE="https://opencode.ai"
-SRC_URI="https://github.com/anomalyco/opencode/releases/download/v${PV}/opencode-linux-x64.tar.gz -> opencode-bin-${PV}-linux-x64.tar.gz"
+SRC_URI="https://github.com/anomalyco/opencode/releases/download/v${UPSTREAM_PV}/opencode-linux-x64.tar.gz -> opencode-bin-${UPSTREAM_PV}-linux-x64.tar.gz"
 
 LICENSE="MIT"
 SLOT="0"

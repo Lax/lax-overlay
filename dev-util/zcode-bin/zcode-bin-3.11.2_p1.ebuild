@@ -3,13 +3,15 @@
 
 EAPI=8
 
+UPSTREAM_PV="${PV%%_*}"
+
 inherit desktop unpacker
 
 MY_PN="ZCode"
 
 DESCRIPTION="GLM-5.3 official AI coding agent (Zhipu AI), Electron desktop app"
 HOMEPAGE="https://zcode.z.ai"
-SRC_URI="https://cdn-zcode.z.ai/zcode/electron/releases/${PV}/linux-x64/${MY_PN}-${PV}-linux-x64.deb -> ${P}-linux-x64.deb"
+SRC_URI="https://cdn-zcode.z.ai/zcode/electron/releases/${UPSTREAM_PV}/linux-x64/${MY_PN}-${UPSTREAM_PV}-linux-x64.deb -> zcode-bin-${UPSTREAM_PV}-linux-x64.deb"
 S="${WORKDIR}"
 
 LICENSE="all-rights-reserved"
@@ -33,7 +35,7 @@ RDEPEND="
 "
 
 src_unpack() {
-	unpack_deb "${P}-linux-x64.deb"
+	unpack_deb "zcode-bin-${UPSTREAM_PV}-linux-x64.deb"
 }
 
 src_install() {
