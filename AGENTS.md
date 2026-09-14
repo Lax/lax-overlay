@@ -4,6 +4,11 @@
 
 **Version suffix `_p1`**: prebuilt packages (`opencode-bin`, `zcode-bin`) append `_p1` to PV to mark them as this overlay's wraps (vs. official upstream). Upstream URLs use `UPSTREAM_PV="${PV%%_*}"` (beta ebuilds declare `UPSTREAM_PV` literally — PV is `0.0.0_betaNNNN_p1`-style); distfile names stay suffix-free so DIST digests don't change. New upstream release X.Y.Z gets ebuild `-$X.Y.Z-p1`.
 
+**Dependency guidance**: consumers of `libz.so.1` depend on `virtual/zlib` (its
+ebuild already carries the `|| ( sys-libs/zlib sys-libs/zlib-ng[compat] )` any-of),
+never directly on deprecated `sys-libs/zlib` or hard-bound `sys-libs/zlib-ng[compat]` —
+the latter triggers a system-wide zlib migration churn (soft blocks with sudo/virtual/zlib).
+
 **Beta snapshots** (`opencode-bin`): beta is a regular versioned ebuild (no USE flag), e.g. `opencode-bin-0.0.0_beta202608110357_p1`,
 mapping upstream tag `v0.0.0-beta-202608110357` → PV `0.0.0_beta202608110357_p1`. Only the
 dated beta tags carry the CLI tarball; `v0.0.0-beta-NNNNN` tags in `anomalyco/opencode-beta`

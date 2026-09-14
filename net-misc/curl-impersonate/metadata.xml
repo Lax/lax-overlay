@@ -5,7 +5,13 @@
 		<email>lax@example.com</email>
 		<name>lax</name>
 	</maintainer>
-	<upstream>
-		<remote-id type="github">lexiforest/curl-impersonate</remote-id>
-	</upstream>
+  <upstream>
+    <remote-id type="github">lexiforest/curl-impersonate</remote-id>
+  </upstream>
+  <use>
+    <flag name="clients">
+      Install the curl_chrome*/curl_ff* browser-fingerprint client shell
+      scripts alongside the main curl binary (older ebuilds only).
+    </flag>
+  </use>
 </pkgmetadata>
