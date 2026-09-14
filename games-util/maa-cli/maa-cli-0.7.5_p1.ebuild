@@ -20,7 +20,7 @@ RESTRICT="strip"
 
 QA_PREBUILT="*"
 
-RDEPEND="sys-libs/zlib-ng[compat]"
+RDEPEND="virtual/zlib"
 
 src_install() {
 	newbin "${S}/maa" maa
