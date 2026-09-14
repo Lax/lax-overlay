@@ -36,6 +36,7 @@ zcode()            { curl -s --max-time 15 "https://zcode.z.ai/en" 2>/dev/null |
 curl_impersonate() { gh api repos/lexiforest/curl-impersonate/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^v//'; }
 curl_cffi()        { gh api repos/lexiforest/curl_cffi/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^v//'; }
 codex()            { gh api repos/openai/codex/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^rust-v//'; }
+maa_cli()          { gh api repos/MaaAssistantArknights/maa-cli/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^v//'; }
 
 # upstream release-notes / tag-message summary for the *new* version we detect
 notes_gh() { # repo maxchars
@@ -94,6 +95,11 @@ OC="dev-util/opencode-bin"
     [ -z "$u" ] && echo "| codex-bin | $l | *detect failed* | ⚠️ |" \
         || { [ "$l" = "$u" ] && echo "| codex-bin | $l | $u | in sync ✅ |" \
         || echo "| codex-bin | $l | $u | behind: next scheduled bump ⚠️ |"; }
+
+    l=$(latest_ver games-util/maa-cli); u=$(maa_cli)
+    [ -z "$u" ] && echo "| maa-cli | $l | *detect failed* | ⚠️ |" \
+        || { [ "$l" = "$u" ] && echo "| maa-cli | $l | $u | in sync ✅ |" \
+        || echo "| maa-cli | $l | $u | behind: next scheduled bump ⚠️ |"; }
 
     echo
     echo "## Upstream new version notes"
