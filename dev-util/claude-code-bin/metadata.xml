@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/pkgmetadata.dtd">
+<pkgmetadata>
+  <maintainer type="project">
+    <email>lax@example.com</email>
+    <name>Lax</name>
+  </maintainer>
+  <upstream>
+    <remote-id type="github">anthropics/claude-code</remote-id>
+    <doc>https://docs.anthropic.com/en/docs/claude-code</doc>
+  </upstream>
+</pkgmetadata>

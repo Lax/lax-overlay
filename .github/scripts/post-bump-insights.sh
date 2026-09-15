@@ -37,6 +37,7 @@ curl_impersonate() { gh api repos/lexiforest/curl-impersonate/releases/latest --
 curl_cffi()        { gh api repos/lexiforest/curl_cffi/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^v//'; }
 codex()            { gh api repos/openai/codex/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^rust-v//'; }
 maa_cli()          { gh api repos/MaaAssistantArknights/maa-cli/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^v//'; }
+claude()           { gh api repos/anthropics/claude-code/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^v//'; }
 
 # upstream release-notes / tag-message summary for the *new* version we detect
 notes_gh() { # repo maxchars
@@ -100,6 +101,11 @@ OC="dev-util/opencode-bin"
     [ -z "$u" ] && echo "| maa-cli | $l | *detect failed* | ⚠️ |" \
         || { [ "$l" = "$u" ] && echo "| maa-cli | $l | $u | in sync ✅ |" \
         || echo "| maa-cli | $l | $u | behind: next scheduled bump ⚠️ |"; }
+
+    l=$(latest_ver dev-util/claude-code-bin); u=$(claude)
+    [ -z "$u" ] && echo "| claude-code-bin | $l | *detect failed* | ⚠️ |" \
+        || { [ "$l" = "$u" ] && echo "| claude-code-bin | $l | $u | in sync ✅ |" \
+        || echo "| claude-code-bin | $l | $u | behind: next scheduled bump ⚠️ |"; }
 
     echo
     echo "## Upstream new version notes"

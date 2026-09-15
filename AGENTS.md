@@ -1,6 +1,6 @@
 # lax — Gentoo overlay
 
-6 ebuild packages, EAPI=8, `~amd64`.
+7 ebuild packages, EAPI=8, `~amd64`.
 
 **Version suffix `_p1`**: prebuilt packages (`opencode-bin`, `zcode-bin`) append `_p1` to PV to mark them as this overlay's wraps (vs. official upstream). Upstream URLs use `UPSTREAM_PV="${PV%%_*}"` (beta ebuilds declare `UPSTREAM_PV` literally — PV is `0.0.0_betaNNNN_p1`-style); distfile names stay suffix-free so DIST digests don't change. New upstream release X.Y.Z gets ebuild `-$X.Y.Z-p1`.
 
@@ -24,6 +24,7 @@ are desktop-only builds. Detect via `detect-version.sh beta` (npm `dist-tags.bet
 | `dev-util/codex-bin` | OpenAI Codex CLI coding agent | openai/codex | Prebuilt static binary from `rust-vX.Y.Z` tags, has `Manifest` with DIST hashes |
 | `dev-util/zcode-bin` | Zhipu GLM coding agent, Electron desktop app (.deb) | zcode.z.ai | Prebuilt Electron, has `Manifest` with DIST hashes, installed to `/opt/ZCode` |
 | `games-util/maa-cli` | MAA (Arknights assistant) CLI | MaaAssistantArknights/maa-cli | Prebuilt dynamic binary, has `Manifest` with DIST hashes; fetches libMaaCore into ~/.local/share/MAA at runtime |
+| `dev-util/claude-code-bin` | Anthropic Claude Code CLI (prebuilt) | anthropics/claude-code | Single-binary native release, has `Manifest` with DIST hashes |
 
 ## Updating packages
 
@@ -33,6 +34,7 @@ bash dev-util/opencode-bin/files/detect-version.sh [beta|stable]   # beta = npm 
 bash dev-util/zcode-bin/files/detect-version.sh
 bash dev-util/codex-bin/files/detect-version.sh
 bash games-util/maa-cli/files/detect-version.sh
+bash dev-util/claude-code-bin/files/detect-version.sh
 ```
 
 For each version bump:
@@ -41,7 +43,7 @@ For each version bump:
    ```
    pkgdev manifest dev-util/opencode-bin
    ```
-   (Only `opencode-bin`, `zcode-bin`, `codex-bin`, and `games-util/maa-cli` need a Manifest — prebuilt binaries. Others use `thin-manifests = true`.)
+   (Only `opencode-bin`, `zcode-bin`, `codex-bin`, `games-util/maa-cli`, and `claude-code-bin` need a Manifest — prebuilt binaries. Others use `thin-manifests = true`.)
 3. Commit: `git add -A && git commit -m "$pkg: $old -> $new"`
 
 **Local vs CI**:
