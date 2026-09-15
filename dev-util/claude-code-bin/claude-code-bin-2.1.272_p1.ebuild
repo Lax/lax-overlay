@@ -20,6 +20,10 @@ RESTRICT="strip"
 
 QA_PREBUILT="*"
 
+RDEPEND="
+	!dev-util/claude-code
+"
+
 src_install() {
 	newbin "${S}/claude" claude
 
