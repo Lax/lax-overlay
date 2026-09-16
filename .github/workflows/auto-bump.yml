@@ -127,10 +127,23 @@ jobs:
           for f in $all; do
             bash -n "$f" || { echo "::error::syntax check failed: $f"; bad=1; }
             case "$f" in
-              *opencode-bin*|*zcode-bin*)
-                dist=$(sed -n 's/.*-> \(.*\)$/\1/p' "$f" | head -n 1)
-                if [ -z "$dist" ] || ! grep -q "^DIST $dist " "$(dirname "$f")/Manifest"; then
-                  echo "::error::$f: distfile '$dist' missing from Manifest (pkgdev manifest step needed)"; bad=1
+              *opencode-bin*|*zcode-bin*|*codex-bin*|*claude-code-bin*|*maa-cli*)
+                d=$(dirname "$f"); pn=$(basename "$d")
+                base=$(basename "$f" .ebuild)
+                pw=${base#"$pn-"}; pv=${pw%_p1}
+                up=$(grep -m1 '^UPSTREAM_PV="' "$f" | cut -d'"' -f2)
+                case "$up" in
+                  *'${PV'*|"") up="${pv%%_*}" ;;
+                esac
+                # expand the distfile template the way the ebuild would
+                distfile=$(sed -n 's/.*-> \([^)" ]*\).*/\1/p' "$f" | head -n 1)
+                distfile=$(printf '%s' "$distfile" \
+                  | sed -e "s/\${UPSTREAM_PV}/$up/g" \
+                        -e "s/\${PN}/$pn/g" \
+                        -e "s/\${P}/$pn-$pv/g" \
+                        -e "s/\${PV}/$pv/g")
+                if [ -z "$distfile" ] || ! grep -q "^DIST $distfile " "$d/Manifest"; then
+                  echo "::error::$f: distfile '$distfile' missing from Manifest (pkgdev manifest step needed)"; bad=1
                 fi
                 ;;
             esac
