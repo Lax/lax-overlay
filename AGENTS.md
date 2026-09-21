@@ -49,7 +49,8 @@ For each version bump:
 **Local vs CI**:
 - Local interactive bumps commit per the recipe above.
 - When running as the scheduled GitHub Actions bump agent (`auto-bump.yml`), do NOT
-  commit or push — create/update ebuilds + Manifests only and let
+  commit or push — create/update ebuilds only (no `pkgdev` on the runner; CI regenerates
+  the prebuilt Manifests itself via `.github/scripts/gen-manifest.sh`) and let
   `stefanzweifel/git-auto-commit-action` handle the single `Auto bump YYYY-MM-DD` commit.
 
 ## Config

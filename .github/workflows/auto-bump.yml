@@ -152,6 +152,12 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      # no pkgdev on the runner: regenerate DIST entries for changed prebuilt
+      # ebuilds by downloading the artifacts and hashing them directly
+      - name: Regenerate Manifest for prebuilt packages
+        if: steps.needed.outputs.up_to_date != 'true'
+        run: bash .github/scripts/gen-manifest.sh
+
       - name: Sanity-check changes
         if: steps.needed.outputs.up_to_date != 'true'
         run: |
