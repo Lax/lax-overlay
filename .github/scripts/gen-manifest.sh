@@ -37,18 +37,23 @@ pypi_version() {
 # Empty SRC_URI + DISTUTILS_USE_PEP517 set => pypi-eclass package: rebuild
 # the sdist URL the way pypi.eclass's _pypi_set_globals would.
 dist_pairs_of() { # ebuild_path
-    local f=$1 d pn base pv out uri pep pver proj distfile
+    local f=$1 d pn base pv pr out uri pep pver proj distfile
     d=$(dirname "$f"); pn=$(basename "$d")
     base=$(basename "$f" .ebuild); pv=${base#"$pn-"}
+    # split off the package revision (PMS: PV excludes -rN, that's PR)
+    pr=0
+    if [[ $pv =~ -r([0-9]+)$ ]]; then
+        pr=${BASH_REMATCH[1]}; pv=${pv%-r*}
+    fi
     out=$(bash --noprofile --norc -c '
         command_not_found_handle() { :; }   # eclass funcs (distutils_enable_tests, ...)
         inherit() { :; }
         unpack() { :; }; eapply() { :; }; eapply_user() { :; }; die() { exit 1; }
-        PN=$1 PV=$2 P="$1-$2" PF="$1-$2" CATEGORY=$3
+        PN=$1 PV=$2 P="$1-$2" PF="$1-$2-r$5" PR="r$5" CATEGORY=$3
         WORKDIR=/nonexistent T=/nonexistent D=/nonexistent FILESDIR=/nonexistent
         source "$4"
         printf "SRC_URI=%s\nPEP517=%s\n" "${SRC_URI-}" "${DISTUTILS_USE_PEP517-}"
-    ' _ "$pn" "$pv" "${d%/*}" "$f")
+    ' _ "$pn" "$pv" "${d%/*}" "$f" "$pr")
     uri=${out%%$'\n'PEP517=*}; uri=${uri#SRC_URI=}
     pep=${out##*PEP517=}
     if [[ -n $uri ]]; then

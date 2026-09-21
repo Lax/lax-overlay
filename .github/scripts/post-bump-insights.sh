@@ -13,13 +13,19 @@ strip_p1() { sed 's/_p1$//'; }
 
 # latest plain versioned ebuild (skips 0.0.0_beta* snapshots)
 latest_ver() { # dir
-    local d="$1" pfx
+    local d="$1" pfx all
     pfx="$(basename "$d")"
-    ls -1 "$d"/*.ebuild 2>/dev/null \
+    all=$(ls -1 "$d"/*.ebuild 2>/dev/null \
         | xargs -rn 1 basename \
         | grep -v '0\.0\.0_beta' \
-        | sed "s/^${pfx}-//; s/\.ebuild$//; s/_p1$//" \
-        | sort -V | tail -n 1
+        | sed "s/^${pfx}-//; s/\.ebuild$//; s/_p1$//")
+    # portage ordering: for the same base version a plain release sorts above
+    # its beta/rc pre-releases (plain sort -V would put beta last); revisions
+    # (-rN) sort above the plain release of the same version
+    printf "%s\n" "$all" \
+        | awk '{v=$0; p=(v ~ /_(beta|rc|pre|alpha)[0-9]*$/) ? 0 : 1; sub(/_(beta|rc|pre|alpha)[0-9]*$/, "", v); print p, v, $0}' \
+        | sort -k2,2V -k1,1n | tail -n 1 | awk '{print $3}' \
+        | sed -e 's/-r[0-9]\+$//' -e 's/_p1$//'
 }
 
 # latest beta snapshot ebuild (0.0.0_betaNNNN_p1)
