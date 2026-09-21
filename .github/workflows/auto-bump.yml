@@ -136,7 +136,7 @@ jobs:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         run: |
           set -o pipefail; set +e
-          timeout 600 opencode --print-logs run 'bump version for all the packages per AGENTS.md; do NOT commit or push' 2>&1 | tee bump.log
+          timeout 900 opencode --print-logs run 'bump version for all the packages per AGENTS.md; do NOT commit or push; do NOT touch any Manifest file and do NOT run gen-manifest.sh or pkgdev — CI regenerates all Manifests after your changes' 2>&1 | tee bump.log
           rc=${PIPESTATUS[0]}
           if [ "$rc" -ne 0 ]; then
             echo "::error::opencode agent failed (rc=$rc); see bump.log"

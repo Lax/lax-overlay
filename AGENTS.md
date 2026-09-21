@@ -39,19 +39,24 @@ bash dev-util/claude-code-bin/files/detect-version.sh
 
 For each version bump:
 1. Create/update ebuild(s): new upstream release X.Y.Z → new ebuild `-$X.Y.Z-p1` (see `_p1` convention above)
-2.    Re-gen Manifest for `dev-util/opencode-bin`:
+2. Re-gen Manifest for the bumped package:
    ```
-   pkgdev manifest dev-util/opencode-bin
+   pkgdev manifest <category>/<pkg>
    ```
-   (Only `opencode-bin`, `zcode-bin`, `codex-bin`, `games-util/maa-cli`, and `claude-code-bin` need a Manifest — prebuilt binaries. Others use `thin-manifests = true`.)
+   (Every package carries a DIST-only (thin) Manifest. The 5 prebuilt binaries
+   (`opencode-bin`, `zcode-bin`, `codex-bin`, `games-util/maa-cli`,
+   `claude-code-bin`) each have one distfile; `curl-impersonate` has a
+   multi-fetchable SRC_URI and `curl-cffi` gets its distfile via the pypi
+   eclass (`curl_cffi-<upstream-ver>.tar.gz`).)
 3. Commit: `git add -A && git commit -m "$pkg: $old -> $new"`
 
 **Local vs CI**:
 - Local interactive bumps commit per the recipe above.
 - When running as the scheduled GitHub Actions bump agent (`auto-bump.yml`), do NOT
-  commit or push — create/update ebuilds only (no `pkgdev` on the runner; CI regenerates
-  the prebuilt Manifests itself via `.github/scripts/gen-manifest.sh`) and let
-  `stefanzweifel/git-auto-commit-action` handle the single `Auto bump YYYY-MM-DD` commit.
+  commit or push and do NOT touch Manifest files — create/update ebuilds only
+  (no `pkgdev` on the runner; CI regenerates every Manifest itself via
+  `.github/scripts/gen-manifest.sh`) and let `stefanzweifel/git-auto-commit-action`
+  handle the single `Auto bump YYYY-MM-DD` commit.
 
 ## Config
 
