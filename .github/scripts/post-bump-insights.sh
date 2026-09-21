@@ -144,7 +144,7 @@ OC="dev-util/opencode-bin"
     echo
     echo "- upstream opencode stable detected: **${UPSTREAM_VER:-unknown}**"
     if [ "${UP_TO_DATE}" = "true" ]; then
-        echo "- outcome: **skipped** — ebuild for latest version already present 🚀"
+        echo "- outcome: **skipped** — all packages in sync with upstream 🚀"
     else
         echo "- outcome: **bump executed**, target ${UPSTREAM_VER}"
         if [ -s .bump-file-changes.txt ]; then

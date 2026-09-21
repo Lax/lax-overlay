@@ -44,12 +44,52 @@ jobs:
         id: date
         run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
 
-      - name: Skip if ebuild for latest version already exists
+      # multi-package skip check: run the agent only when at least one
+      # package has a newer upstream release than its latest ebuild
+      - name: Skip if ebuilds for latest versions already exist
         id: needed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          VER="${{ steps.ver.outputs.version }}"
-          if git ls-files -- 'dev-util/opencode-bin/*.ebuild' | grep -qx "dev-util/opencode-bin/opencode-bin-${VER}_p1.ebuild"; then
+          # pkg <tab> suffix <tab> upstream version
+          #   suffix: "_p1" for wrapped prebuilt packages, "" otherwise
+          upstream() {
+            case "${1##*/}" in
+              opencode-bin)      bash dev-util/opencode-bin/files/detect-version.sh stable
+                                 bash dev-util/opencode-bin/files/detect-version.sh beta | sed 's/^0\.0\.0-beta-/0.0.0_beta/' ;;
+              zcode-bin)         bash dev-util/zcode-bin/files/detect-version.sh ;;
+              codex-bin)         bash dev-util/codex-bin/files/detect-version.sh ;;
+              maa-cli)           bash games-util/maa-cli/files/detect-version.sh ;;
+              claude-code-bin)   bash dev-util/claude-code-bin/files/detect-version.sh ;;
+              curl-impersonate)  gh api repos/lexiforest/curl-impersonate/releases/latest --jq '.tag_name' | sed -e 's/^v//' -e 's/-rc/_rc/' ;;
+              curl-cffi)         gh api repos/lexiforest/curl_cffi/releases/latest --jq '.tag_name' | sed -e 's/^v//' -e 's/b\([0-9][0-9]*\)$/_beta\1/' ;;
+            esac
+          }
+          outdated=0
+          while IFS=$'\t' read -r pkg suffix; do
+            ver=$(upstream "$pkg")
+            if [ -z "$ver" ]; then
+              echo "::warning::$pkg: version detect failed; assuming outdated"
+              outdated=1
+              continue
+            fi
+            while IFS= read -r v; do
+              if ! git ls-files -- "$pkg/*.ebuild" | grep -qx "$pkg/${pkg##*/}-${v}${suffix}.ebuild"; then
+                echo "outdated: $pkg (upstream $v)"
+                outdated=1
+              fi
+            done <<<"$ver"
+          done <<'TABLE'
+          dev-util/opencode-bin	_p1
+          dev-util/zcode-bin	_p1
+          dev-util/codex-bin	_p1
+          games-util/maa-cli	_p1
+          dev-util/claude-code-bin	_p1
+          net-misc/curl-impersonate
+          dev-python/curl-cffi
+          TABLE
+          if [ "$outdated" -eq 0 ]; then
             echo "up_to_date=true" >> "$GITHUB_OUTPUT"
           else
             echo "up_to_date=false" >> "$GITHUB_OUTPUT"
