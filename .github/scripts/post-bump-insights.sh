@@ -40,7 +40,7 @@ opencode_stable()  { gh api repos/anomalyco/opencode/releases/latest --jq '.tag_
 opencode_beta()    { curl -s --max-time 15 "https://registry.npmjs.org/opencode-ai" 2>/dev/null | grep -o '"beta":"0\.0\.0-beta-[0-9]*"' | cut -d'"' -f4; }
 zcode()            { curl -s --max-time 15 "https://zcode.z.ai/en" 2>/dev/null | grep -oE 'releases/[0-9]+\.[0-9]+\.[0-9]+' | sed 's|releases/||' | sort -uV | tail -n 1; }
 curl_impersonate() { gh api repos/lexiforest/curl-impersonate/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^v//'; }
-curl_cffi()        { gh api repos/lexiforest/curl_cffi/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^v//'; }
+curl_cffi()        { gh api repos/lexiforest/curl_cffi/releases/latest --jq '.tag_name' 2>/dev/null | sed -e 's/^v//' -e 's/b\([0-9][0-9]*\)$/_beta\1/' -e 's/rc\([0-9][0-9]*\)$/_rc\1/'; }
 codex()            { gh api repos/openai/codex/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^rust-v//'; }
 maa_cli()          { gh api repos/MaaAssistantArknights/maa-cli/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^v//'; }
 claude()           { gh api repos/anthropics/claude-code/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^v//'; }
